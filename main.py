@@ -121,8 +121,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
 
     #upsampling 4 times from 16x256 to 64x64
-    kernel_size = 8
-    stride = 16
+    kernel_size = 16
+    stride = 8
     ups_3 = tf.layers.conv2d_transpose(out_3, num_classes, kernel_size, stride, padding='same', 
                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     return ups_3
