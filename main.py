@@ -83,22 +83,21 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     kernel_size = 1
     stride = 1
     #taking the last layer of vgg16 to build a 1x1 fully convolutional layer
-    fconv = tf.layers.conv2d(vgg_layer7_out, vgg_layer7_out.get_shape()[3], kernel_size, stride, 
+    fconv = tf.layers.conv2d(vgg_layer7_out, vgg_layer7_out.shape[3], kernel_size, stride, 
                              padding='same', 
                              kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     #print("fconv shape{}".format(fconv.shape))
 
     #skip connections by adding and relu
     out_1 = tf.add(fconv, vgg_layer7_out)
-    out_1 = tf.nn.relu(out_1)
     #print("out_1 shape{}".format(out_1.shape))
     
 
     #upsampling 8 times from 1x4096 to 8x512
     #as upsampling is dictated by stride, adjust stride to 8
-    kernel_size = 2
-    stride = 8
-    ups_1 = tf.layers.conv2d_transpose(out_1, vgg_layer4_out.get_shape()[3], kernel_size, stride, 
+    kernel_size = 4
+    stride = 2
+    ups_1 = tf.layers.conv2d_transpose(out_1, vgg_layer4_out.shape[3], kernel_size, stride, 
                                        padding='same', 
                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     #print("ups_1 shape{}".format(ups_1.shape))
@@ -106,26 +105,24 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     #skip connections by adding and relu
     out_2 = tf.add(ups_1, vgg_layer4_out)
-    out_2 = tf.nn.relu(out_2)
     #print("out_2 shape{}".format(out_2.shape))
 
 
     #upsampling 2 times from 8x512 to 16x256
-    kernel_size = 2
+    kernel_size = 4
     stride = 2
-    ups_2 = tf.layers.conv2d_transpose(out_2, vgg_layer3_out.get_shape()[3], kernel_size, stride, padding='same', 
+    ups_2 = tf.layers.conv2d_transpose(out_2, vgg_layer3_out.shape[3], kernel_size, stride, padding='same', 
                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     
 
     #skip connections by adding and relu
     out_3 = tf.add(ups_2, vgg_layer3_out)
-    out_3 = tf.nn.relu(out_3)
     #print("out_3 shape{}".format(out_3.shape))
 
 
     #upsampling 4 times from 16x256 to 64x64
-    kernel_size = 2
-    stride = 4
+    kernel_size = 8
+    stride = 16
     ups_3 = tf.layers.conv2d_transpose(out_3, num_classes, kernel_size, stride, padding='same', 
                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     return ups_3
@@ -181,9 +178,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         j = 0
         for images, labels in (get_batches_fn(batch_size)):
             print("batch {} ...".format(j+1))
+            j+=1
             sess.run([train_op, cross_entropy_loss], feed_dict={input_image:images, correct_label:labels, 
                                           keep_prob:0.8, learning_rate:0.001})
-            
         #validation_accuracy = evaluate(X_valid, y_valid)
         #print("Validation Accuracy = {:.3f}".format(validation_accuracy))
         print()
